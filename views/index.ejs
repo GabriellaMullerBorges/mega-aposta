@@ -12,20 +12,65 @@
     <section>
       <h2>Olá, <%= userName %> </h2>
       <h3>Selecione ou surpresa</h3>
-      <% for(let i = 1; i <= 50; i++) { %>
-        <button type="button" class="btn btn-outline-dark"><%= i %></button>
-      <% } %>
+
+      <form action="/registrar-aposta" method="POST">
+        <label for="numero1">Número 1:</label>
+        <input type="number" id="numero1" name="numeros[]" min="1" max="50" required>
+        
+        <label for="numero2">Número 2:</label>
+        <input type="number" id="numero2" name="numeros[]" min="1" max="50" required>
+        
+        <label for="numero3">Número 3:</label>
+        <input type="number" id="numero3" name="numeros[]" min="1" max="50" required>
+        
+        <label for="numero4">Número 4:</label>
+        <input type="number" id="numero4" name="numeros[]" min="1" max="50" required>
+        
+        <label for="numero5">Número 5:</label>
+        <input type="number" id="numero5" name="numeros[]" min="1" max="50" required>
+        
+        <input type="hidden" id="numerosConcatenados" name="numeros">
+
+        <button type="submit" class="btn btn-primary">Apostar</button>
+      </form>
+      
+
     </section>
     
     <aside>
       <h3>Minhas Apostas</h3> 
-       
+
     </aside>
 
     <footer>
       <p> Gabriella Müller Borges</p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+      document.querySelector('form').addEventListener('submit', function(e) {
+          // Prevenir o envio padrão do formulário
+          e.preventDefault();
+      
+          // Coletar os valores dos campos de número
+          const numeros = [
+              document.getElementById('numero1').value,
+              document.getElementById('numero2').value,
+              document.getElementById('numero3').value,
+              document.getElementById('numero4').value,
+              document.getElementById('numero5').value
+          ];
+      
+          // Combinar os números em uma string, separados por vírgula
+          const numerosConcatenados = numeros.join(',');
+      
+          // Atribuir a string combinada ao campo oculto
+          document.getElementById('numerosConcatenados').value = numerosConcatenados;
+      
+          // Submeter o formulário manualmente
+          this.submit();
+      });
+      </script>
+      
   </body>
 </html>
 
