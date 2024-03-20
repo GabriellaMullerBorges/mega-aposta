@@ -16,7 +16,7 @@ const Sorteios = sequelize.define('Sorteios', {
     allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: true,
 });
 
 module.exports = Sorteios;

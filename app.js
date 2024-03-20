@@ -1,38 +1,51 @@
 const express = require('express');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
+const sequelize = require('./config/database');
 
 const app = express();
-const indexRouter = require('./routes/index');
+const router = require('./routes/index');
 
-const PORT = 5173;
+const PORT =  process.env.PORT || 5173
 
-// Opções para o express-mysql-session.
 const sessionStoreOptions = {
-    host: 'localhost', // ou seu host de banco de dados
-    port: 3306, // ou a porta do seu banco de dados
-    user: 'root', // seu usuário do banco de dados
-    password: 'root', // sua senha do banco de dados
-    database: 'mega' // o nome do seu banco de dados
+    host: 'localhost', 
+    port: 3306, 
+    user: 'root', 
+    password: 'root', 
+    database: 'mega', 
+    logging: console.log,
 };
 
 const sessionStore = new MySQLStore(sessionStoreOptions);
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 app.use(session({
-    secret: 'secret_key',
+    secret: 'secret',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: sessionStore, 
-    cookie: { secure: false }
+    cookie: { 
+        secure: false,
+        path: '/',
+    }
+    
 }));
 
-app.use('/', indexRouter);
+app.use(router);
+
+sequelize.sync().then(() => {
+    console.log('Banco de dados sincronizado.');
+}).catch(err => {
+    console.error('Erro ao sincronizar o banco de dados:', err);
+});
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
+
 
 module.exports = app;

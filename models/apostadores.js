@@ -1,5 +1,5 @@
-const { DataTypes } =  require('sequelize');
-const sequelize =  require('../config/database');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const Apostadores = sequelize.define('Apostadores', {
   id: {
@@ -15,18 +15,18 @@ const Apostadores = sequelize.define('Apostadores', {
     type: DataTypes.STRING(200),
     allowNull: false,
     unique: true 
+  },
+  createdAt: {
+    type: DataTypes.STRING(200),
+    defaultValue: 'hoje'
+  },
+  updatedAt: {
+    type: DataTypes.STRING(200),
+    defaultValue: 'hoje'
   }
 }, {
   modelName: 'Apostadores',
-  timestamps: false
+  timestamps: false // Desative o comportamento padrão de timestamp, já que você está personalizando
 });
-
-sequelize.sync({ force: true })
-  .then(() => {
-    console.log('Modelos sincronizados com o banco de dados.');
-  })
-  .catch(err => {
-    console.error('Erro ao sincronizar os modelos com o banco de dados:', err);
-  });
 
 module.exports = Apostadores;

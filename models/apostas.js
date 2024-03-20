@@ -18,15 +18,15 @@ const Apostas = sequelize.define('Apostas', {
        this.setDataValue('numeros', val.join(',')); // Convertendo array para string para armazenar
     }
   },
-  apostadorCPF: {
+  apostadorCPF: { // usando o CPF como chave
     type: DataTypes.INTEGER,
     references: {
       model: Apostadores, 
-      key: 'id', 
+      key: 'cpf', 
     }
   }
 }, {
-  timestamps: false
+  timestamps: true,
 });
 
 module.exports = Apostas;

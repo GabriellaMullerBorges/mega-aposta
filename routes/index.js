@@ -1,35 +1,70 @@
-const express = require('express');
-const router = express.Router();
-const Apostadores = require('../models/apostadores');
-const Apostas = require('../models/apostas');
-// const Sorteios = require('../models/sorteios'); // Importação não utilizada no exemplo atual
+const {Router} = require('express');
+const router = Router()
+const Apostadores = require('../models/apostadores.js');
+const Apostas = require('../models/apostas.js');
+const { sequelize } = require('../config/database'); // Ajuste o caminho conforme necessário
 
-// Rota da página inicial
-router.get('/', async (req, res) => {
-  const userCPF = req.session.userCPF;
-  let apostas = [];
 
-  if (userCPF) {
-      apostas = await Apostas.findAll({ where: { apostadorCPF: userCPF } });
-  }
 
-  const isLoggedIn = !!userCPF; // Transforma 'userCPF' em um booleano: true se existe, false se não
-
-  res.render('index', { apostas, isLoggedIn });
+// Rota para exibir o formulário de registro como página inicial
+router.get('/', (req, res) => {
+    res.render('form');
 });
 
 // Rota para registrar novo apostador
 router.post('/registrar', async (req, res) => {
-    const { nome, cpf } = req.body;
+  console.log("Dados recebidos:", req.body);
+  const { nome, cpf , createdAt,  updatedAt} = req.body;
 
-    // Criar novo apostador com os dados do formulário
-    const apostador = await Apostadores.create({ nome, cpf });
+  if (!nome || !cpf) {
+    console.log('AAA')
+    return res.status(400).send('Nome e CPF são obrigatórios.');
+  }
 
-    // Armazenar o CPF do apostador na sessão para futuras identificações
-    req.session.userCPF = apostador.cpf;
+  let apostador = await Apostadores.findOne({ where: { cpf } });
 
-    // Redirecionar para a página inicial após o registro
-    res.redirect('/');
+  if (!apostador) {
+    apostador = await Apostadores.create({ 
+      nome: nome, 
+      cpf: cpf, 
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    });
+    console.log("Apostador criado:", apostador);
+  }else {
+    console.log("Apostador encontrado:", apostador);
+  }
+
+  req.session.userCPF = apostador.cpf;
+  req.session.userName = apostador.nome;
+
+  console.log('TESTANDO', req.session);
+
+  //salvando a seção para não perder os dados
+req.session.save(err => {
+    if (err) {
+      console.error("Erro ao salvar a sessão:", err);
+      return res.status(500).send("Erro interno do servidor");
+    }
+    res.redirect('/home');
+  });
 });
+
+  router.get('/home', (req, res) => {
+    console.log('TESTANDO de novo', req.session);
+    if (req.session.userCPF && req.session.userName) {
+      console.log("CPF do usuário na sessão:", req.session.userCPF);
+      console.log("Nome do usuário na sessão:", req.session.userName);
+      res.render('index', {
+        userCPF: req.session.userCPF,
+        userName: req.session.userName
+      });
+    } else {
+      res.render('index', {
+        userCPF: '',
+        userName: 'Usuário não identificado'
+      });
+    }
+  });
 
 module.exports = router;

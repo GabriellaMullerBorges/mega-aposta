@@ -7,7 +7,8 @@ const sequelize = new Sequelize('mega','root','root', {
 
 const Session = sequelize.define('Session', {
     token: DataTypes.STRING,
-    expires: DataTypes.DATE
+    expires: DataTypes.DATE,
+    data: DataTypes.TEXT,
   });
 
 module.exports = sequelize;
