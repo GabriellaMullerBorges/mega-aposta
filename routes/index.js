@@ -68,17 +68,28 @@ router.get('/home', (req, res) => {
 
 // Rota para registrar uma nova aposta
 router.post('/registrar-aposta', async function(req, res, next) {
+  console.log('REGISTRANDO')
   try {
-    const { userName, userCPF } = req.body;
+    const userName =  req.session.userName
+    const userCPF= req.session.userCPF 
+      
     let numeros = req.body.numeros;
+    if (!userCPF) {
+      return res.status(400).send('CPF do usuário não encontrado na sessão.');
+    }
 
     // Se 'numeros' for um array, pega apenas os primeiros 5 elementos e transforma-os em uma string separada por vírgulas
     if (Array.isArray(numeros)) {
       numeros = numeros.slice(0, 5).join(',');
     }
-    // Agora, 'numeros' é uma string e pode ser usada para criar a nova aposta
-    await Apostas.create({ userName, userCPF, numeros });
-    console.log('Esses são os números', numeros);
+
+    // Agora, 'numeros' é uma string e pode ser usada para criar a nova aposta, associando-a ao CPF do usuário da sessão
+    const novaAposta = await Apostas.create({
+      numeros,
+      apostadorCPF: userCPF // Usando o CPF da sessão
+    });
+
+    console.log('Nova aposta criada:', novaAposta);
     console.log(req.session.userCPF, req.session.userName, numeros)
   res.render('sucesso')
   } catch (error) {
@@ -86,6 +97,34 @@ router.post('/registrar-aposta', async function(req, res, next) {
     res.send(error);
   }
 });
+
+
+router.get('/apostados', async (req, res) => {
+  console.log('AQUI APOSTANDO');
+  try {
+    const userCPF = req.session.userCPF;
+
+    if (!userCPF) {
+      return res.status(400).send('CPF do usuário não encontrado.');
+    }
+
+    // Buscar apostas do banco de dados filtrando pelo CPF do usuário
+    const apostasUsuario = await Apostas.findAll({
+      where: { apostadorCPF: userCPF }
+    });
+
+    // Converter o array de apostas em uma string de números
+    const numerosApostas = apostasUsuario.map(aposta => aposta.numeros).join(' | ');
+
+    console.log('cpf usuario', userCPF, 'aposta dele', numerosApostas);
+
+    res.render('apostados', { numerosApostas });
+  } catch (error) {
+    console.error('Erro ao buscar apostas:', error);
+    res.status(500).send('Erro interno do servidor');
+  }
+});
+
 
 
 module.exports = router;
