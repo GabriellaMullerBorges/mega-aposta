@@ -8,7 +8,7 @@ const { sequelize } = require('../config/database'); // Ajuste o caminho conform
 function gerarNumerosSorteados() {
   const numerosSorteados = [];
   while (numerosSorteados.length < 5) {
-    const numero = Math.floor(Math.random() * 60) + 1; // Gera um número aleatório entre 1 e 60
+    const numero = Math.floor(Math.random() * 50) + 1; // Gera um número aleatório entre 1 e 60
     if (!numerosSorteados.includes(numero)) {
       numerosSorteados.push(numero);
     }

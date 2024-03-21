@@ -19,7 +19,9 @@
     <% } %>
 
     <% if (vencedor) { %>
-      <p>Vencedor: <%= vencedor %></p>
+      <p>Apostador Vencedor: <%= vencedor %></p>
+    <% } else { %>
+      <p>Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.</p>
     <% } %>
   </section>
 
