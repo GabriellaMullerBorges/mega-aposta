@@ -2,7 +2,8 @@ const {Router} = require('express');
 const router = Router()
 const Apostadores = require('../models/apostadores.js');
 const Apostas = require('../models/apostas.js');
-const { sequelize } = require('../config/database'); // Ajuste o caminho conforme necessário
+const { sequelize } = require('../config/database'); 
+const Sorteios = require('../models/sorteios.js');
 
 // Função para gerar números sorteados
 function gerarNumerosSorteados() {
@@ -78,20 +79,33 @@ req.session.save(err => {
   });
 });
 
-router.get('/home', (req, res) => {
-  console.log('TESTANDO de novo', req.session);
-  if (req.session.userCPF && req.session.userName) {
-    console.log("CPF do usuário na sessão:", req.session.userCPF);
-    console.log("Nome do usuário na sessão:", req.session.userName);
-    res.render('index', {
-      userCPF: req.session.userCPF,
-      userName: req.session.userName
-    });
-  } else {
-    res.render('index', {
-      userCPF: '',
-      userName: 'Usuário não identificado'
-    });
+router.get('/home', async (req, res) => {
+  try {
+    // Buscar o valor da última rodada na tabela sorteios
+    const ultimaRodada = await Sorteios.max('rodada');
+
+    // Se a última rodada não foi encontrada, definir como 0
+    const edicao = ultimaRodada ? ultimaRodada + 1 : 1;
+
+    console.log('TESTANDO de novo', req.session);
+    if (req.session.userCPF && req.session.userName) {
+      console.log("CPF do usuário na sessão:", req.session.userCPF);
+      console.log("Nome do usuário na sessão:", req.session.userName);
+      res.render('index', {
+        userCPF: req.session.userCPF,
+        userName: req.session.userName,
+        edicao: edicao
+      });
+    } else {
+      res.render('index', {
+        userCPF: '',
+        userName: 'Usuário não identificado',
+        edicao: edicao
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar a última rodada:', error);
+    res.status(500).send('Erro interno do servidor');
   }
 });
 
@@ -180,6 +194,10 @@ router.get('/realizar-sorteio', async (req, res) => {
     let numerosSorteados = null;
     let vencedores = [];
 
+     // Obtém o valor atual de rodada do banco de dados
+     let sorteio = await Sorteios.findOne({ order: [['rodada', 'DESC']] });
+     let rodada = sorteio ? sorteio.rodada : 0;
+
     while (tentativas < 25 && vencedores.length === 0) {
       numerosSorteados = gerarNumerosSorteados();
       //ordenando os números do sorteio
@@ -210,6 +228,11 @@ router.get('/realizar-sorteio', async (req, res) => {
       console.log('Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.');
     }
 
+     // Incrementa o valor de rodada
+     rodada++;
+
+     // Salva o novo sorteio no banco de dados
+     await Sorteios.create({ numerosSorteados: numerosSorteados.join(','), rodada });
 
     res.render('sorteados', { numerosSorteados, vencedores });
   } catch (error) {
