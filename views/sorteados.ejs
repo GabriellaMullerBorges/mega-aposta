@@ -12,16 +12,16 @@
 
   <section>
     <h3>Números Sorteados</h3>
-    <% if (numerosSorteados && numerosSorteados.length > 0) { %>
-      <p>Números: <%= numerosSorteados.join(', ') %></p>
+    <p>Números: <%= numerosSorteados.join(', ') %></p>
+    <% if (vencedores.length > 0) { %>
+      <h3>Apostadores Vencedores</h3>
+      <ul>
+        <% vencedores.forEach(function(vencedor) { %>
+          <li>Apostador: <%= vencedor.nome %>, CPF: <%= vencedor.cpf %></li>
+        <% }); %>
+      </ul>
     <% } else { %>
-      <p>Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.</p>
-    <% } %>
-
-    <% if (vencedor) { %>
-      <p>Apostador Vencedor: <%= vencedor %></p>
-    <% } else { %>
-      <p>Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.</p>
+      <p>Nenhum vencedor encontrado após 25 tentativas.</p>
     <% } %>
   </section>
 

@@ -177,11 +177,10 @@ router.post('/autorizar-sorteio', async (req, res) => {
 router.get('/realizar-sorteio', async (req, res) => {
   try {
     let tentativas = 0;
-    let vencedorEncontrado = false;
     let numerosSorteados = null;
-    let vencedor = null;
+    let vencedores = [];
 
-    while (tentativas < 25 && !vencedorEncontrado) {
+    while (tentativas < 25 && vencedores.length === 0) {
       numerosSorteados = gerarNumerosSorteados();
       //ordenando os números do sorteio
       numerosSorteados = numerosSorteados.sort((a, b) => a - b);
@@ -189,27 +188,30 @@ router.get('/realizar-sorteio', async (req, res) => {
 
       const todasApostas = await Apostas.findAll();
 
+      //verifica se algum apostador acertou os números sorteados
       for (const aposta of todasApostas) {
         const numerosApostados = aposta.numeros.split(',').map(Number);
         const acertos = numerosApostados.filter(numero => numerosSorteados.includes(numero)).length;
 
         if (acertos === 5) {
-          console.log('Números sorteados:', numerosSorteados);
-          console.log('Apostador vencedor:', aposta.apostadorCPF);
-          vencedorEncontrado = true;
-          vencedor = aposta.apostadorCPF;
-          break;
+          const apostador = await Apostadores.findOne({ where: { cpf: aposta.apostadorCPF } });
+          vencedores.push({ cpf: aposta.apostadorCPF, nome: apostador.nome });
         }
       }
 
       tentativas++;
     }
 
-    if (!vencedorEncontrado) {
+    vencedores.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    if (vencedores.length > 0) {
+      console.log('Sorteio encerrado. Vencedores:', vencedores);
+    } else {
       console.log('Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.');
     }
 
-    res.render('sorteados', { numerosSorteados, vencedor });
+
+    res.render('sorteados', { numerosSorteados, vencedores });
   } catch (error) {
     console.error('Erro ao realizar o sorteio:', error);
     res.status(500).send('Erro interno do servidor');
