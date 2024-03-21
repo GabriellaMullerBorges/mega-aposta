@@ -9,7 +9,7 @@ const Sorteios = require('../models/sorteios.js');
 function gerarNumerosSorteados() {
   const numerosSorteados = [];
   while (numerosSorteados.length < 5) {
-    const numero = Math.floor(Math.random() * 50) + 1; // Gera um número aleatório entre 1 e 60
+    const numero = Math.floor(Math.random() * 5) + 1; // Gera um número aleatório entre 1 e 60
     if (!numerosSorteados.includes(numero)) {
       numerosSorteados.push(numero);
     }
@@ -190,7 +190,7 @@ router.post('/autorizar-sorteio', async (req, res) => {
   const { codigoAutorizacao } = req.body;
 
   // Verifica se o código de autorização está correto
-  if (codigoAutorizacao === 'Contratado') {
+  if (codigoAutorizacao === 'ITACADEMY') {
     // Redireciona para a rota de realização de sorteio
     res.redirect('/realizar-sorteio');
   } else {
@@ -221,10 +221,15 @@ router.get('/realizar-sorteio', async (req, res) => {
       for (const aposta of todasApostas) {
         const numerosApostados = aposta.numeros.split(',').map(Number);
         const acertos = numerosApostados.filter(numero => numerosSorteados.includes(numero)).length;
-
+      
         if (acertos === 5) {
           const apostador = await Apostadores.findOne({ where: { cpf: aposta.apostadorCPF } });
-          vencedores.push({ cpf: aposta.apostadorCPF, nome: apostador.nome });
+      
+          // Verifica se o CPF do apostador já está na lista de vencedores para não aparecer repetidos
+          const cpfVencedor = vencedores.map(vencedor => vencedor.cpf);
+          if (!cpfVencedor.includes(aposta.apostadorCPF)) {
+            vencedores.push({ cpf: aposta.apostadorCPF, nome: apostador.nome });
+          }
         }
       }
 

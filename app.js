@@ -19,7 +19,10 @@ const sessionStoreOptions = {
 
 const sessionStore = new MySQLStore(sessionStoreOptions);
 
+
+app.use(express.static('public')); //para poder ver o css
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
