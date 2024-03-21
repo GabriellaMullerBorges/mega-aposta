@@ -35,6 +35,11 @@ async function verificarVencedor(numerosSorteados) {
   return null;
 }
 
+//Função para verificar numeros duplicads
+function hasDuplicates(array) {
+  return new Set(array).size !== array.length;
+}
+
 
 // Rota para exibir o formulário de registro como página inicial
 router.get('/', (req, res) => {
@@ -112,11 +117,17 @@ router.get('/home', async (req, res) => {
 // Rota para registrar uma nova aposta
 router.post('/registrar-aposta', async function(req, res, next) {
   console.log('REGISTRANDO')
+  let numeros = req.body.numeros;
   try {
     const userName = req.session.userName;
     const userCPF = req.session.userCPF;
+
+    if (hasDuplicates(numeros)) {
+      // Se houver números duplicados, redirecione de volta para a página de registro com uma mensagem de erro
+      return res.send('<script>alert("Por favor, insira números únicos em cada campo."); window.location.href="/home";</script>')
+    } else {
       
-    let numeros = req.body.numeros;
+    
     if (!userCPF) {
       return res.status(400).send('CPF do usuário não encontrado na sessão.');
     }
@@ -134,7 +145,7 @@ router.post('/registrar-aposta', async function(req, res, next) {
     console.log('Nova aposta criada:', novaAposta);
     console.log(req.session.userCPF, req.session.userName, numeros)
     res.render('sucesso');
-  } catch (error) {
+  }} catch (error) {
     console.log(error); 
     res.send(error);
   }
