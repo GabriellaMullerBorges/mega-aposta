@@ -4,6 +4,35 @@ const Apostadores = require('../models/apostadores.js');
 const Apostas = require('../models/apostas.js');
 const { sequelize } = require('../config/database'); // Ajuste o caminho conforme necessário
 
+// Função para gerar números sorteados
+function gerarNumerosSorteados() {
+  const numerosSorteados = [];
+  while (numerosSorteados.length < 5) {
+    const numero = Math.floor(Math.random() * 60) + 1; // Gera um número aleatório entre 1 e 60
+    if (!numerosSorteados.includes(numero)) {
+      numerosSorteados.push(numero);
+    }
+  }
+  return numerosSorteados;
+}
+
+// Função para verificar se há um vencedor
+async function verificarVencedor(numerosSorteados) {
+  // Buscar todas as apostas do banco de dados
+  const todasApostas = await Apostas.findAll();
+
+  // Iterar sobre todas as apostas e verificar se algum jogador acertou os números sorteados
+  for (const aposta of todasApostas) {
+    const numerosAposta = aposta.numeros.split(',').map(num => parseInt(num));
+    const acertos = numerosAposta.filter(num => numerosSorteados.includes(num));
+    if (acertos.length === 5) { // Se o jogador acertou os 5 números
+      return { aposta, numerosSorteados };
+    }
+  }
+
+  // Retorna null se nenhum jogador acertou os números sorteados
+  return null;
+}
 
 
 // Rota para exibir o formulário de registro como página inicial
@@ -70,20 +99,19 @@ router.get('/home', (req, res) => {
 router.post('/registrar-aposta', async function(req, res, next) {
   console.log('REGISTRANDO')
   try {
-    const userName =  req.session.userName
-    const userCPF= req.session.userCPF 
+    const userName = req.session.userName;
+    const userCPF = req.session.userCPF;
       
     let numeros = req.body.numeros;
     if (!userCPF) {
       return res.status(400).send('CPF do usuário não encontrado na sessão.');
     }
 
-    // Se 'numeros' for um array, pega apenas os primeiros 5 elementos e transforma-os em uma string separada por vírgulas
+    // Se 'numeros' for um array, pega apenas os primeiros 5 elementos e ordena-os em ordem crescente
     if (Array.isArray(numeros)) {
-      numeros = numeros.slice(0, 5).join(',');
+      numeros = numeros.slice(0, 5).sort((a, b) => a - b).join(',');
     }
 
-    // Agora, 'numeros' é uma string e pode ser usada para criar a nova aposta, associando-a ao CPF do usuário da sessão
     const novaAposta = await Apostas.create({
       numeros,
       apostadorCPF: userCPF // Usando o CPF da sessão
@@ -91,7 +119,7 @@ router.post('/registrar-aposta', async function(req, res, next) {
 
     console.log('Nova aposta criada:', novaAposta);
     console.log(req.session.userCPF, req.session.userName, numeros)
-  res.render('sucesso')
+    res.render('sucesso');
   } catch (error) {
     console.log(error); 
     res.send(error);
@@ -99,6 +127,7 @@ router.post('/registrar-aposta', async function(req, res, next) {
 });
 
 
+//VER NÚMEROS APOSTAODS
 router.get('/apostados', async (req, res) => {
   console.log('AQUI APOSTANDO');
   try {
@@ -124,6 +153,69 @@ router.get('/apostados', async (req, res) => {
     res.status(500).send('Erro interno do servidor');
   }
 });
+
+
+// Exibir o formulário de autorização de sorteio
+router.get('/autorizar-sorteio', (req, res) => {
+  res.render('autorizar-sorteio');
+});
+
+// Rota para processar a autorização de sorteio
+router.post('/autorizar-sorteio', async (req, res) => {
+  const { codigoAutorizacao } = req.body;
+
+  // Verifica se o código de autorização está correto
+  if (codigoAutorizacao === 'Contratado') {
+    // Redireciona para a rota de realização de sorteio
+    res.redirect('/realizar-sorteio');
+  } else {
+    res.status(401).send('Código de autorização inválido.');
+  }
+});
+
+//REALIZAR SORTEIO
+router.get('/realizar-sorteio', async (req, res) => {
+  try {
+    let tentativas = 0;
+    let vencedorEncontrado = false;
+    let numerosSorteados = null;
+    let vencedor = null;
+
+    while (tentativas < 25 && !vencedorEncontrado) {
+      numerosSorteados = gerarNumerosSorteados();
+      //ordenando os números do sorteio
+      numerosSorteados = numerosSorteados.sort((a, b) => a - b);
+      console.log('Números sorteados:', numerosSorteados);
+
+      const todasApostas = await Apostas.findAll();
+
+      for (const aposta of todasApostas) {
+        const numerosApostados = aposta.numeros.split(',').map(Number);
+        const acertos = numerosApostados.filter(numero => numerosSorteados.includes(numero)).length;
+
+        if (acertos === 5) {
+          console.log('Números sorteados:', numerosSorteados);
+          console.log('Apostador vencedor:', aposta.apostadorCPF);
+          vencedorEncontrado = true;
+          vencedor = aposta.apostadorCPF;
+          break;
+        }
+      }
+
+      tentativas++;
+    }
+
+    if (!vencedorEncontrado) {
+      console.log('Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.');
+    }
+
+    res.render('sorteados', { numerosSorteados, vencedor });
+  } catch (error) {
+    console.error('Erro ao realizar o sorteio:', error);
+    res.status(500).send('Erro interno do servidor');
+  }
+});
+
 
 
 

@@ -7,19 +7,22 @@
 <body>
   <header>
     <button onclick="window.location.href = '/home';" class="btn btn-primary">Voltar</button>
-
-    <h1>Minhas Apostas</h1>
+    <h1>SORTEIO REALIZADO</h1>
   </header>
 
   <section>
-    <h3>Apostas Realizadas</h3>
-    <% if (numerosApostas) { %>
-      <p>Apostas: <%= numerosApostas %></p>
+    <h3>Números Sorteados</h3>
+    <% if (numerosSorteados && numerosSorteados.length > 0) { %>
+      <p>Números: <%= numerosSorteados.join(', ') %></p>
     <% } else { %>
-      <p>Você ainda não realizou nenhuma aposta.</p>
+      <p>Sorteio encerrado. Nenhum vencedor encontrado após 25 tentativas.</p>
+    <% } %>
+
+    <% if (vencedor) { %>
+      <p>Vencedor: <%= vencedor %></p>
     <% } %>
   </section>
-  <a href="/autorizar-sorteio" class="btn btn-success">Realizar sorteio</a>
+
   <footer>
     <p> Gabriella Müller Borges</p>
   </footer>
