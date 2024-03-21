@@ -9,7 +9,7 @@ const Sorteios = require('../models/sorteios.js');
 function gerarNumerosSorteados() {
   const numerosSorteados = [];
   while (numerosSorteados.length < 5) {
-    const numero = Math.floor(Math.random() * 5) + 1; // Gera um número aleatório entre 1 e 60
+    const numero = Math.floor(Math.random() * 50) + 1; // Gera um número aleatório entre 1 e 60
     if (!numerosSorteados.includes(numero)) {
       numerosSorteados.push(numero);
     }
