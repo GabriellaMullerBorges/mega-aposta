@@ -84,6 +84,7 @@ req.session.save(err => {
   });
 });
 
+//Rota Home
 router.get('/home', async (req, res) => {
   try {
     // Buscar o valor da última rodada na tabela sorteios
@@ -123,7 +124,7 @@ router.post('/registrar-aposta', async function(req, res, next) {
     const userCPF = req.session.userCPF;
 
     if (hasDuplicates(numeros)) {
-      // Se houver números duplicados, redirecione de volta para a página de registro com uma mensagem de erro
+      // Se houver números duplicados, volta para a página com uma mensagem de erro
       return res.send('<script>alert("Por favor, insira números únicos em cada campo."); window.location.href="/home";</script>')
     } else {
       

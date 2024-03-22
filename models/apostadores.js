@@ -26,7 +26,7 @@ const Apostadores = sequelize.define('Apostadores', {
   }
 }, {
   modelName: 'Apostadores',
-  timestamps: false // Desative o comportamento padrão de timestamp, já que você está personalizando
+  timestamps: false 
 });
 
 module.exports = Apostadores;
